@@ -64,9 +64,21 @@ parkdata$name = parknames
 # Methods
 
 ```{r}
-parkdata
+parkdata_copy <- parkdata
+parkdata_copy
+rows <- c(6)
+averages <- colMeans(parkdata_copy[1:rows[1],2:18])
+newrow <- c("S01", averages)
+parkdata_copy %>%
+  rbind(parkdata_copy,newrow) %>%
+  parkdata_copy[-(1:6), ]
+
+```
+
+```{r}
 patients
 ```
+
 
 # Results
 
