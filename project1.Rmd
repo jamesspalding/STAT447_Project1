@@ -67,14 +67,27 @@ fulldata = fulldata[!is.na(fulldata$Sex), ]
 # Methods
 
 ```{r}
-parkdata_copy <- parkdata
-parkdata_copy
-rows <- c(6)
-averages <- colMeans(parkdata_copy[1:rows[1],2:18])
-newrow <- c("S01", averages)
-parkdata_copy %>%
-  rbind(parkdata_copy,newrow) %>%
-  parkdata_copy[-(1:6), ]
+parkdata
+
+empty_df <- data.frame(matrix(ncol = ncol(parkdata), nrow = 0))
+colnames(empty_df) <- colnames(parkdata)
+
+rows <- c(6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,6,6,6,6,7,6,6,6,6,7,6,6,6,6,6,6,6)
+name <- c("S01", "S02", "S04", "S05", "S06", "S07", "S08", "S10", "S13", "S16", 
+          "S17", "S18", "S19", "S20", "S21", "S22", "S24", "S25", "S26",
+          "S27", "S31", "S32", "S33", "S34", "S35", "S37", "S39", "S42",
+          "S43", "S44", "S49", "S50")
+
+for(i in 1:length(rows)) {
+  
+  averages <- colMeans(parkdata_copy[1:rows[i],2:18])
+  newrow <- c(name[i], averages)
+
+  empty_df %>%
+    rbind(empty_df,newrow)
+}
+
+empty_df
 
 ```
 
