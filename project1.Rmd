@@ -1,6 +1,6 @@
 ---
 title: "STAT547 Project 1"
-author: "James Spalding"
+author: "James Spalding & Ryan Winder"
 date: "2024-02-27"
 output: html_document
 ---
@@ -47,7 +47,8 @@ parkdata = read.csv("parkinsons.csv")
 # Methods
 
 ```{r}
-
+parkdata
+patients
 ```
 
 # Results
