@@ -13,14 +13,14 @@ knitr::opts_chunk$set(echo = TRUE)
 #packages
 library(tidyverse)
 library(readxl)
-#data
-patients = read_excel("patients.xlsx")[,1:5]
-parkdata = read.csv("parkinsons.csv")
+
 ```
 
 ```{r}
 ##### Data cleaning #####
-
+#data
+patients = read_excel("patients.xlsx")[,1:5]
+parkdata = read.csv("parkinsons.csv")
 
 #patients data:
 #clean up non-numeric values
@@ -36,17 +36,20 @@ patients$`Years since diagnosis` = as.numeric(patients$`Years since diagnosis`)
 #remove "healthy" from names
 subnames = gsub(" \\(.*", "", patients$'Subject code')
 patients$`Subject code` = subnames
+colnames(patients)[1] = "name"
 
 
 #parkdata: 
 #makes names column match format of patients data
 parknames = gsub("p.*S", "S", parkdata$name)
-parknames = gsub("_*", "", parknames)
+parknames = gsub("_.", "", parknames)
+
 parkdata$name = parknames
 
 
 ##### Joining Tables #####
-
+fulldata = right_join(patients, parkdata, by = "name")
+fulldata = fulldata[!is.na(fulldata$Sex), ]
 ```
 
 # Introduction
