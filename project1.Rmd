@@ -13,7 +13,6 @@ knitr::opts_chunk$set(echo = TRUE)
 #packages
 library(tidyverse)
 library(readxl)
-
 ```
 
 ```{r}
@@ -49,8 +48,28 @@ parkdata$name = parknames
 
 ##### Joining Tables #####
 fulldata = right_join(patients, parkdata, by = "name")
-fulldata = fulldata[!is.na(fulldata$Sex), ]
+fulldata = fulldata[!is.na(fulldata$Sex), ] #removing cases without a match in patients df
 ```
+
+```{r}
+#function to create descriptive tables
+groupDescriptives = function(func){
+  df = data.frame(nrow = 31)
+  for (i in 6:21) {
+    df = cbind(df, 
+                   tapply(fulldata[[i]], fulldata[["name"]], func)
+                   )
+  }
+  df = df[,2:17]
+  names(df) = names(fulldata)[6:21]
+  return(df)
+}
+
+meanDF = groupDescriptives("mean")
+sdDF = groupDescriptives("sd")
+medDF = groupDescriptives("median")
+```
+
 
 # Introduction
 
