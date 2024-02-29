@@ -1,0 +1,58 @@
+---
+title: "STAT547 Project 1"
+author: "James Spalding"
+date: "2024-02-27"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, include=F}
+#data/packages
+library(tidyverse)
+library(readxl)
+
+#clean up non-nmeric values
+patients = read_excel("patients.xlsx")[,1:5]
+patients[2,5] = ".25"
+patients[6,5] = "1.5"
+patients[12,5] = "4.5"
+patients[15,5] = "5.5"
+patients[24:31,4:5] = NA
+patients$`Stage (H&Y)` = as.numeric(patients$`Stage (H&Y)`)
+patients$`Years since diagnosis` = as.numeric(patients$`Years since diagnosis`
+)
+
+#this data looks ok
+parkdata = read.csv("parkinsons.csv")
+
+#TODO:
+#combine datasets
+```
+
+# Introduction
+
+```{r}
+
+```
+
+# Exploring Data
+
+```{r}
+
+```
+
+# Methods
+
+```{r}
+
+```
+
+# Results
+
+```{r}
+
+```
+
