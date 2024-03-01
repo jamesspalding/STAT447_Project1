@@ -55,13 +55,13 @@ fulldata = fulldata[!is.na(fulldata$Sex), ] #removing cases without a match in p
 #function to create descriptive tables
 groupDescriptives = function(func){
   df = data.frame(nrow = 31)
-  for (i in 6:21) {
+  for (i in 6:22) {
     df = cbind(df, 
                    tapply(fulldata[[i]], fulldata[["name"]], func)
                    )
   }
-  df = df[,2:17]
-  names(df) = names(fulldata)[6:21]
+  df = df[,2:18]
+  names(df) = names(fulldata)[6:22]
   return(df)
 }
 
@@ -90,8 +90,23 @@ patients2 <- patients %>%
   arrange(name)
 
 combined_data <- cbind(patients2,meanDF[,-1])
+attach(combined_data)
 
-combined_data
+first_test <- data_frame(
+  Healthy = c(sum(Sex == "M" & status == 0), sum(Sex == "F" & status == 0)),
+  Unhealthy = c(sum(Sex == "M" & status == 1), sum(Sex == "F" & status == 1)),
+  row.names = c("Male", "Female")
+)
+
+first_test_matrix <- matrix(c(as.numeric(first_test[1,1]),
+                              as.numeric(first_test[2,1]),
+                              as.numeric(first_test[1,2]),
+                              as.numeric(first_test[2,2])),nrow=2)
+
+first_test
+mcnemar.test(first_test_matrix) # p-value of .0291, so we reject H0
+                                # We can then claim that the probability of getting
+                                # parkinson's is not the same for both Men and Women
 ```
 
 
