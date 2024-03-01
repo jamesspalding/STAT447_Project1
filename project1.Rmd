@@ -13,6 +13,7 @@ knitr::opts_chunk$set(echo = TRUE)
 #packages
 library(tidyverse)
 library(readxl)
+library(DescTools)
 ```
 
 ```{r}
@@ -108,6 +109,97 @@ mcnemar.test(first_test_matrix) # p-value of .0291, so we reject H0
                                 # We can then claim that the probability of getting
                                 # parkinson's is not the same for both Men and Women
 ```
+
+```{r}
+M_year_of_diagnosis = c()
+F_year_of_diagnosis = c()
+j = 1
+k = 1
+
+for(i in 1:31) {
+  if(!is.na(`Years since diagnosis`[i])) {
+    if(Sex[i] == "M") { M_year_of_diagnosis[j] = Age[i] - `Years since diagnosis`[i]
+                     j = j + 1}
+    if(Sex[i] == "F") { F_year_of_diagnosis[k] = Age[i] - `Years since diagnosis`[i]
+                     k = k + 1}
+  }
+}
+
+M_year_of_diagnosis
+F_year_of_diagnosis
+
+# Returns a p-value of .00695. We can reject H0. 
+# We have significant evidence that the variability between men and women
+# differ for when they are diagnosed with Parkinsons
+SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
+```
+
+
+```{r}
+difference_function <- function(x, test_to_run = mean) {
+  
+  function_list <- list(
+    Healthy = c(x[status == 0]),
+    Unhealthy = c(x[status == 1])
+  )
+  
+  dat1 <- function_list$Healthy
+  dat2 <- function_list$Unhealthy
+  
+  m=length(function_list$Healthy)
+  n=length(function_list$Unhealthy)
+  tot=m+n
+  Dobs=test_to_run(dat1)-test_to_run(dat2)
+  Dobs
+
+  nperm=1000
+  Dperm=rep(0,nperm)
+  alldat=c(dat1,dat2)
+
+  for(i in 1:nperm){
+    index=sample(1:tot,m)
+    newdat1=alldat[index]
+    newdat2=alldat[-index]
+    Dperm[i]=test_to_run(newdat1)-test_to_run(newdat2)
+  }
+
+  pvalue=sum(Dperm<=Dobs)/nperm
+  pvalue
+}
+
+explanatory_variables <- data.frame(
+  variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
+                "MDVP.RAP", "MDVP.PPQ", "Jitter.DDP", "MDVP.Shimmer", "MDVP.Shimmer.dB.",
+                "Shimmer.APQ3", "Shimmer.APQ5", "MDVP.APQ", "Shimmer.DDA",
+                "NHR", "HNR"))
+p_values_mean <- c()
+p_values_var <- c()
+p_values_median <- c()
+
+for(i in 6:20) {
+  p_values_mean[i-5] <- difference_function(combined_data[,i])
+  p_values_var[i-5] <- difference_function(combined_data[,i], var)
+  p_values_median[i-5] <- difference_function(combined_data[,i], median)
+}
+
+
+permutation_tests <- data.frame(
+  Variable = explanatory_variables$variables,
+  Pval_mean = p_values_mean,
+  Pval_var = p_values_var,
+  Pval_median = p_values_median
+)
+
+permutation_tests
+
+
+```
+
+
+
+
+
+
 
 
 
