@@ -150,7 +150,6 @@ difference_function <- function(x, test_to_run = mean) {
   n=length(function_list$Unhealthy)
   tot=m+n
   Dobs=test_to_run(dat1)-test_to_run(dat2)
-  Dobs
 
   nperm=1000
   Dperm=rep(0,nperm)
@@ -163,7 +162,7 @@ difference_function <- function(x, test_to_run = mean) {
     Dperm[i]=test_to_run(newdat1)-test_to_run(newdat2)
   }
 
-  pvalue=sum(Dperm<=Dobs)/nperm
+  pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm
   pvalue
 }
 
@@ -191,8 +190,6 @@ permutation_tests <- data.frame(
 )
 
 permutation_tests
-
-
 ```
 
 
