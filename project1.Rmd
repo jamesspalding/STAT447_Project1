@@ -77,11 +77,12 @@ maxDF = groupDescriptives("max")
 
 # Introduction
 
-**Our goal in this paper is to assess possible connections in voice data with the diagnosis of Parkinson's Disease (PD).**
+    Our goal in this paper is to assess possible connections in voice data with the diagnosis of Parkinson's Disease (PD). We were given a csv file containing all of the voice measurements from 31 people, where 23 have Parkinson's. We were also given further information about each patient in an xlsv file, which we intend to condense both into one table to better analyze the connections between the voice measurements with further personal information. 
+    In order to best join the tables and run appropriate statistics on the data, we intend to average the voice measurements for each variable and then merge the two tables by joining columns. Once here, we intend to explore the data, and then run statistics of interest, one of which is identifying if there are differences in the age that men and women are diagnosed with PD. The last thing of interest is we will look to identify what variables from the voice measurements could be statistically significant in identifying patients who have PD. By doing so, we will look at if there is a signficant difference between the means, variances, and medians of those that have and do not have PD across all voice measurements.
+    
+# Exploring The Data
 
-## The Data
-
-The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
+    The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
 
 ```{r}
 #Using a few packages to create pretty tables
@@ -98,7 +99,7 @@ records %>%
   gt_theme_nytimes()
 ```
 
-Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
+    Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
 
 
 ```{r, eval = F}
@@ -111,13 +112,13 @@ for(i in names(fulldata)[3:21]){
 which(shapiroP>.05) #none of the variables are normally distributed.
 ```
 
-By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
+    By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
 
-## Do the scores differ by sex?
+**Do the scores differ by sex?**
 
-The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
+    The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
 
-P Values:
+**P Values:**
 
 ```{r, eval=T}
 pvalues = c()
@@ -154,9 +155,9 @@ round(pvalues[-c(2,3)],1)
 #round(ospvalues[-c(2,3)],1)
 ```
 
-With an $\alpha$ value of .05, we can say that the mean scores for min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
+    With an $\alpha$ value of .05, we can say that the mean scores for min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
 
-## Is there a difference in diagnosis between sexes?
+**Is there a difference in diagnosis between sexes?**
 
 Zooming in on the above observation that males appear to be more frequently diagnosed than females, we can perform the McNemar's test on the data to confirm or deny this observation.
 
@@ -190,11 +191,11 @@ first_test %>%
 
 $$\chi^2 = 4.76 \; \; \; P = 0.03$$
 
-As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
+    As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
 
-## Does age make a difference?
+**Does age make a difference?**
 
-We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
+    We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
 
 P-Values:
 
@@ -233,23 +234,25 @@ round(pvalues[-c(2,3)],1)
 #round(ospvalues[-c(2,3)],1)
 ```
 
-With an $\alpha$ level of .05, we can conclude that there is a significant difference between  means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
-
-
-# Exploring Data
+    With an $\alpha$ level of .05, we can conclude that there is a significant difference between means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
 
 ```{r}
 plot(fulldata)
+```
 
+```{r}
 ggplot(data = fulldata, aes(Age, Shimmer.APQ5, color = Sex))+
   geom_point()
 ```
 
-# Methods
+# Statistical Methods
 
+got to test for a difference in the means probably for there being a difference in the age diagnosed.
 
+    We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. For testing for a difference between men and women in the variability of diagnosis we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. For this test we have the following hypothesis: 
+    \(H_0: \sigma_{1}^{2} = \sigma_{2}^{2}\)
 
-```{r}
+```{r, echo=FALSE}
 M_year_of_diagnosis = c()
 F_year_of_diagnosis = c()
 j = 1
@@ -264,14 +267,13 @@ for(i in 1:31) {
   }
 }
 
-M_year_of_diagnosis
-F_year_of_diagnosis
-
 # Returns a p-value of .00695. We can reject H0. 
 # We have significant evidence that the variability between men and women
 # differ for when they are diagnosed with Parkinsons
 SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
 ```
+
+    The Siegel-Tukey test returned a test statistic of 32, and a corresponding p-value of 0.00695. We can then reject 
 
 
 ```{r}
@@ -330,42 +332,6 @@ permutation_tests <- data.frame(
 
 permutation_tests
 ```
-
-
-
-
-
-
-
-
-
-```{r}
-
-## useless code :(
-# parkdata
-# 
-# empty_df <- data.frame(matrix(ncol = ncol(parkdata), nrow = 0))
-# colnames(empty_df) <- colnames(parkdata)
-# 
-# rows <- c(6,6,6,6,6,6,6,6,6,6,6,6,6,6,7,6,6,6,6,7,6,6,6,6,7,6,6,6,6,6,6,6)
-# name <- c("S01", "S02", "S04", "S05", "S06", "S07", "S08", "S10", "S13", "S16", 
-#           "S17", "S18", "S19", "S20", "S21", "S22", "S24", "S25", "S26",
-#           "S27", "S31", "S32", "S33", "S34", "S35", "S37", "S39", "S42",
-#           "S43", "S44", "S49", "S50")
-# 
-# for(i in 1:length(rows)) {
-#   
-#   averages <- colMeans(parkdata_copy[1:rows[i],2:18])
-#   newrow <- c(name[i], averages)
-# 
-#   empty_df %>%
-#     rbind(empty_df,newrow)
-# }
-# 
-# empty_df
-
-```
-
 
 
 # Results
