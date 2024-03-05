@@ -2,14 +2,16 @@
 title: "STAT547 Project 1"
 author: "James Spalding & Ryan Winder"
 date: "2024-02-27"
-output: html_document
+output:
+  pdf_document: default
+  html_document: default
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = F, warning = F, message = F)
 ```
 
-```{r, include=F}
+```{r}
 #packages
 library(tidyverse)
 library(readxl)
@@ -69,22 +71,94 @@ groupDescriptives = function(func){
 meanDF = groupDescriptives("mean")
 sdDF = groupDescriptives("sd")
 medDF = groupDescriptives("median")
+minDF = groupDescriptives("min")
+maxDF = groupDescriptives("max")
 ```
-
 
 # Introduction
 
-```{r}
+**Our goal in this paper is to assess possible connections in voice data with the diagnosis of Parkinson's Disease (PD).**
 
+## The Data
+
+The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
+
+```{r}
+#Using a few packages to create pretty tables
+library(gt)
+library(gtExtras)
+
+Term = c("Sex","Age","Stage","Diagnosis", "Fo","Fhi", "Flo", "Jitter", "Shimmer", "NHR/HNR", "Status")
+Definition = c("Biological sex (M/F)","Age in years","Severity of Parkenson's disease (1-4)", "Years since first positive diagnosis (If applicable)", "Average vocal fundamental frequency (Hz.)", "Maximum vocal fundamental frequency (Hz.)", "Minimum vocal fundamental frequency (Hz.)","Measure of variation in fundamental frequency", "Measure of variation in amplitude", "Measure of ratio of noise to tonal components in the voice", "Presence of PD in patient (Y/N)")
+
+records = t(as.data.frame(rbind(Term, Definition)))
+records = as.data.frame(records)
+records %>%
+  gt() %>%
+  gt_theme_nytimes()
 ```
 
-# Exploring Data
+Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
 
-```{r}
 
+```{r, eval = F}
+#check for normality
+shapiroP = c()
+for(i in names(fulldata)[3:21]){
+  shapiroP = c(shapiroP, shapiro.test(fulldata[[i]])$p.value)
+}
+
+which(shapiroP>.05) #none of the variables are normally distributed.
 ```
 
-# Methods
+By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
+
+## Do the scores differ by sex?
+
+The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
+
+P Values:
+
+```{r, eval=T}
+pvalues = c()
+ospvalues = c()
+for(z in 3:22){
+
+  dat1 = filter(fulldata, Sex == "M")[[z]]
+    
+  dat2 = filter(fulldata, Sex == "F")[[z]]
+  
+  m=length(dat1)
+  n=length(dat2)
+  tot=m+n
+  Dobs=mean(dat1)-mean(dat2)
+  
+  nperm=1000
+  Dperm=rep(0,nperm) 
+  alldat=c(dat1,dat2)
+  
+  for(i in 1:nperm){
+    index=sample(1:tot,m)
+    newdat1=alldat[index]
+    newdat2=alldat[-index]
+    Dperm[i]=mean(newdat1)-mean(newdat2)
+  }
+  
+  pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm #means not equal
+  onesidepval = sum(Dperm>=Dobs)/nperm #male means higher than female means
+  ospvalues = c(ospvalues, onesidepval)
+  pvalues = c(pvalues, pvalue)
+  
+}
+round(pvalues[-c(2,3)],1)
+#round(ospvalues[-c(2,3)],1)
+```
+
+With an $\alpha$ value of .05, we can say that the mean scores for min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
+
+## Is there a difference in diagnosis between sexes?
+
+Zooming in on the above observation that males appear to be more frequently diagnosed than females, we can perform the McNemar's test on the data to confirm or deny this observation.
 
 ```{r}
 patients2 <- patients %>%
@@ -96,7 +170,7 @@ attach(combined_data)
 first_test <- data_frame(
   Healthy = c(sum(Sex == "M" & status == 0), sum(Sex == "F" & status == 0)),
   Unhealthy = c(sum(Sex == "M" & status == 1), sum(Sex == "F" & status == 1)),
-  row.names = c("Male", "Female")
+  Sex = c("Male", "Female")
 )
 
 first_test_matrix <- matrix(c(as.numeric(first_test[1,1]),
@@ -104,11 +178,76 @@ first_test_matrix <- matrix(c(as.numeric(first_test[1,1]),
                               as.numeric(first_test[1,2]),
                               as.numeric(first_test[2,2])),nrow=2)
 
-first_test
-mcnemar.test(first_test_matrix) # p-value of .0291, so we reject H0
+
+#mcnemar.test(first_test_matrix) #p-value of .0291, so we reject H0
                                 # We can then claim that the probability of getting
                                 # parkinson's is not the same for both Men and Women
+
+first_test %>%
+  gt() %>%
+  gt_theme_nytimes()
 ```
+
+$$\chi^2 = 4.76 \; \; \; P = 0.03$$
+
+As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
+
+## Does age make a difference?
+
+We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
+
+P-Values:
+
+```{r, eval = T}
+pvalues = c()
+ospvalues = c()
+for(z in 6:22){
+
+  dat1 = filter(fulldata, Age <= 65)[[z]]
+    
+  dat2 = filter(fulldata, Age > 65)[[z]]
+  
+  m=length(dat1)
+  n=length(dat2)
+  tot=m+n
+  Dobs=mean(dat1)-mean(dat2)
+  
+  nperm=1000
+  Dperm=rep(0,nperm) 
+  alldat=c(dat1,dat2)
+  
+  for(i in 1:nperm){
+    index=sample(1:tot,m)
+    newdat1=alldat[index]
+    newdat2=alldat[-index]
+    Dperm[i]=mean(newdat1)-mean(newdat2)
+  }
+  
+  pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm 
+  onesidepval = sum(Dperm>=Dobs)/nperm 
+  ospvalues = c(ospvalues, onesidepval)
+  pvalues = c(pvalues, pvalue)
+  
+}
+round(pvalues[-c(2,3)],1)
+#round(ospvalues[-c(2,3)],1)
+```
+
+With an $\alpha$ level of .05, we can conclude that there is a significant difference between  means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
+
+
+# Exploring Data
+
+```{r}
+plot(fulldata)
+
+ggplot(data = fulldata, aes(Age, Shimmer.APQ5, color = Sex))+
+  geom_point()
+```
+
+# Methods
+
+
 
 ```{r}
 M_year_of_diagnosis = c()
