@@ -313,7 +313,6 @@ ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
 
 It is also notable that those in the older age group had higher results for every one of the measures shown.
 
-
 # Statistical Methods
 
 ```{r, include=FALSE}
@@ -351,8 +350,6 @@ difference_function <- function(x, test_to_run = mean) {
 We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. 
 
 First, we will run a right-tailed two-sample simulated permutation test to see if the mean age at which women are diagnosed with PD is statistically greater than men. The hypothesis is given by:
-    $$\(H_0: \mu_{F} = \mu_{M}\)$$
-    $$\(H_a: \mu_{F} > \mu_{M}\)$$
     
 ```{r, include=FALSE}
 M_year_of_diagnosis = c()
@@ -397,8 +394,6 @@ sum(Dperm>=Dobs)/nperm
 The Dobs from the two-sample simulated permutation test is 0.2589, and the test gives a corresponding $\p-val$ of around 0.464. Therefore we fail to reject $\H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
 
 Next we are interested in testing if there is a difference between the variability of when men and women are diagnosed. For this we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. Then, we will check the result of that test with another two-sample simulated permutation test for the variances. For the Siegel Tukey test we have the following hypothesis: 
-    $$\(H_0: \sigma_{M}^{2} = \sigma_{F}^{2}\)$$
-    $$\(H_a: \sigma_{M}^{2} /= \sigma_{F}^{2}\)$$
 
 ```{r, echo=FALSE, eval = F}
 M_year_of_diagnosis = c()
@@ -427,8 +422,6 @@ $$P = 0.007$$
 The Siegel-Tukey test returned a test statistic of 32, and a corresponding p-value of 0.00695. Therefore, we can say that there is significant evidence that there is a difference in variance between genders.
 
 We will then run another test for this using the simulated permutation test to see if the variability for the age women are diagnosed with PD is greater than that for men. We will be using the two-sample simlulated permutation test for this because it has a greater power than the Siegel Tukey test. The hypothesis for this test is as follows:
-    $$\(H_0: \sigma_{F}^{2} = \sigma_{M}^{2}\)$$
-    $$\(H_a: \sigma_{F}^{2} > \sigma_{M}^{2}\)$$
 
 ```{r, include=FALSE}
 dat1 = F_year_of_diagnosis
