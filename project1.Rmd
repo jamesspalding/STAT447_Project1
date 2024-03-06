@@ -3,8 +3,9 @@ title: "STAT547 Project 1"
 author: "James Spalding & Ryan Winder"
 date: "2024-02-27"
 output:
-  pdf_document: default
+  word_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -77,12 +78,13 @@ maxDF = groupDescriptives("max")
 
 # Introduction
 
-    Our goal in this paper is to assess possible connections in voice data with the diagnosis of Parkinson's Disease (PD). We were given a csv file containing all of the voice measurements from 31 people, where 23 have Parkinson's. We were also given further information about each patient in an xlsv file, which we intend to condense both into one table to better analyze the connections between the voice measurements with further personal information. 
-    In order to best join the tables and run appropriate statistics on the data, we intend to average the voice measurements for each variable and then merge the two tables by joining columns. Once here, we intend to explore the data, and then run statistics of interest, one of which is identifying if there are differences in the age that men and women are diagnosed with PD. The last thing of interest is we will look to identify what variables from the voice measurements could be statistically significant in identifying patients who have PD. By doing so, we will look at if there is a signficant difference between the means, variances, and medians of those that have and do not have PD across all voice measurements.
+Our goal in this paper is to assess possible connections in voice data with the diagnosis of Parkinson's Disease (PD). We were given a csv file containing all of the voice measurements from 31 people, where 23 have Parkinson's. We were also given further information about each patient in an xlsv file, which we intend to condense both into one table to better analyze the connections between the voice measurements with further personal information. 
+
+In order to best join the tables and run appropriate statistics on the data, we intend to average the voice measurements for each variable and then merge the two tables by joining columns. Once here, we intend to explore the data, and then run statistics of interest, one of which is identifying if there are differences in the age that men and women are diagnosed with PD. The last thing of interest is we will look to identify what variables from the voice measurements could be statistically significant in identifying patients who have PD. By doing so, we will look at if there is a signficant difference between the means, variances, and medians of those that have and do not have PD across all voice measurements.
     
 # Exploring The Data
 
-    The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
+The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
 
 ```{r}
 #Using a few packages to create pretty tables
@@ -99,7 +101,7 @@ records %>%
   gt_theme_nytimes()
 ```
 
-    Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
+Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
 
 
 ```{r, eval = F}
@@ -112,11 +114,11 @@ for(i in names(fulldata)[3:21]){
 which(shapiroP>.05) #none of the variables are normally distributed.
 ```
 
-    By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
+By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
 
 **Do the scores differ by sex?**
 
-    The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
+The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
 
 **P Values:**
 
@@ -155,7 +157,7 @@ round(pvalues[-c(2,3)],1)
 #round(ospvalues[-c(2,3)],1)
 ```
 
-    With an $\alpha$ value of .05, we can say that the mean scores for min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
+With an $\alpha$ value of .05, we can say that the mean scores for min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
 
 **Is there a difference in diagnosis between sexes?**
 
@@ -191,11 +193,11 @@ first_test %>%
 
 $$\chi^2 = 4.76 \; \; \; P = 0.03$$
 
-    As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
+As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
 
 **Does age make a difference?**
 
-    We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
+We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
 
 P-Values:
 
@@ -234,7 +236,7 @@ round(pvalues[-c(2,3)],1)
 #round(ospvalues[-c(2,3)],1)
 ```
 
-    With an $\alpha$ level of .05, we can conclude that there is a significant difference between means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
+With an $\alpha$ level of .05, we can conclude that there is a significant difference between means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
 
 ```{r}
 plot(fulldata)
@@ -247,36 +249,7 @@ ggplot(data = fulldata, aes(Age, Shimmer.APQ5, color = Sex))+
 
 # Statistical Methods
 
-got to test for a difference in the means probably for there being a difference in the age diagnosed.
-
-    We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. For testing for a difference between men and women in the variability of diagnosis we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. For this test we have the following hypothesis: 
-    \(H_0: \sigma_{1}^{2} = \sigma_{2}^{2}\)
-
-```{r, echo=FALSE}
-M_year_of_diagnosis = c()
-F_year_of_diagnosis = c()
-j = 1
-k = 1
-
-for(i in 1:31) {
-  if(!is.na(`Years since diagnosis`[i])) {
-    if(Sex[i] == "M") { M_year_of_diagnosis[j] = Age[i] - `Years since diagnosis`[i]
-                     j = j + 1}
-    if(Sex[i] == "F") { F_year_of_diagnosis[k] = Age[i] - `Years since diagnosis`[i]
-                     k = k + 1}
-  }
-}
-
-# Returns a p-value of .00695. We can reject H0. 
-# We have significant evidence that the variability between men and women
-# differ for when they are diagnosed with Parkinsons
-SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
-```
-
-    The Siegel-Tukey test returned a test statistic of 32, and a corresponding p-value of 0.00695. We can then reject 
-
-
-```{r}
+```{r, include=FALSE}
 difference_function <- function(x, test_to_run = mean) {
   
   function_list <- list(
@@ -306,7 +279,100 @@ difference_function <- function(x, test_to_run = mean) {
   pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm
   pvalue
 }
+```
 
+We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. First, we will run a right-tailed two-sample simulated permutation test to see if the mean age at which women are diagnosed with PD is statistically greater than men. The hypothesis is given by:
+    $$\(H_0: \mu_{F} = \mu_{M}\)$$
+    $$\(H_a: \mu_{F} > \mu_{M}\)$$
+    
+```{r, include=FALSE}
+M_year_of_diagnosis = c()
+F_year_of_diagnosis = c()
+j = 1
+k = 1
+
+for(i in 1:31) {
+  if(!is.na(`Years since diagnosis`[i])) {
+    if(Sex[i] == "M") { M_year_of_diagnosis[j] = Age[i] - `Years since diagnosis`[i]
+                     j = j + 1}
+    if(Sex[i] == "F") { F_year_of_diagnosis[k] = Age[i] - `Years since diagnosis`[i]
+                     k = k + 1}
+  }
+}
+
+dat1 = F_year_of_diagnosis
+dat2 = M_year_of_diagnosis
+
+m=length(dat1)
+n=length(dat2)
+tot=m+n
+Dobs=mean(dat1)-mean(dat2)
+
+nperm=1000
+Dperm=rep(0,nperm)
+alldat=c(dat1,dat2)
+
+for(i in 1:nperm){
+  index=sample(1:tot,m)
+  newdat1=alldat[index]
+  newdat2=alldat[-index]
+  Dperm[i]=mean(newdat1)-mean(newdat2)
+}
+```
+
+```{r, echo=FALSE}
+Dobs
+sum(Dperm>=Dobs)/nperm
+```
+
+The Dobs from the two-sample simulated permutation test is 0.2589, and the test gives a corresponding $\p-val$ of around 0.464. Therefore we fail to reject $\H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+
+For testing for a difference between men and women in the variability of diagnosis we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. Then, we will check the result of that test with another two-sample simulated permutation test for the variances. For the Siegel Tukey test we have the following hypothesis: 
+    $$\(H_0: \sigma_{M}^{2} = \sigma_{F}^{2}\)$$
+    $$\(H_a: \sigma_{M}^{2} /= \sigma_{F}^{2}\)$$
+
+```{r, echo=FALSE}
+# Returns a p-value of .00695. We can reject H0. 
+# We have significant evidence that the variability between men and women
+# differ for when they are diagnosed with Parkinsons
+SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
+```
+
+The Siegel-Tukey test returned a test statistic of 32, and a corresponding $\p-val$ of 0.00695. We can then reject $\H_0$ at the .05 level. We can than conclude that we have significant evidence to suggest that the variance for at what age men and women are diagnosed with PD is different. 
+We will then run another test for this using the simulated permutation test to see if the variability for the age women are diagnosed with PD is greater than that for men. We will be using the two-sample simlulated permutation test for this because it has a greater power than the Siegel Tukey test. The hypothesis for this test is as follows:
+    $$\(H_0: \sigma_{F}^{2} = \sigma_{M}^{2}\)$$
+    $$\(H_a: \sigma_{F}^{2} > \sigma_{M}^{2}\)$$
+
+```{r, include=FALSE}
+dat1 = F_year_of_diagnosis
+dat2 = M_year_of_diagnosis
+
+m=length(dat1)
+n=length(dat2)
+tot=m+n
+Dobs=var(dat1)-var(dat2)
+
+nperm=1000
+Dperm=rep(0,nperm)
+alldat=c(dat1,dat2)
+
+for(i in 1:nperm){
+  index=sample(1:tot,m)
+  newdat1=alldat[index]
+  newdat2=alldat[-index]
+  Dperm[i]=var(newdat1)-var(newdat2)
+}
+```
+
+```{r, echo=FALSE}
+Dobs
+sum(Dperm >= Dobs)/nperm
+```
+
+The two-sample simulated permutation test gives a Dobs of 215.469, and a corresponding $\p-val$ of around 0.002. We can reject $\H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
+
+
+```{r}
 explanatory_variables <- data.frame(
   variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
                 "MDVP.RAP", "MDVP.PPQ", "Jitter.DDP", "MDVP.Shimmer", "MDVP.Shimmer.dB.",
