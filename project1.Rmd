@@ -204,6 +204,10 @@ P-Values:
 ```{r, eval = T}
 pvalues = c()
 ospvalues = c()
+
+fulldata = fulldata %>%
+  mutate(agegroup = ifelse(Age <= 65,0,1)) #Create category for age group
+
 for(z in 6:22){
 
   dat1 = filter(fulldata, Age <= 65)[[z]]
@@ -239,17 +243,115 @@ round(pvalues[-c(2,3)],1)
 With an $\alpha$ level of .05, we can conclude that there is a significant difference between means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
 
 ```{r}
-plot(fulldata)
+#logistic regression?
+numericdata = fulldata %>%
+  select(-c(name, Age, `Stage (H&Y)`, `Years since diagnosis`))
+numericdata$Sex = factor(numericdata$Sex)
+numericdata$agegroup = factor(numericdata$agegroup)
+
+
+result = glm(status~.
+             -MDVP.PPQ
+             -HNR
+             -MDVP.Flo.Hz.
+             -NHR
+             -agegroup
+             -MDVP.Jitter.Abs.
+             -MDVP.Shimmer.dB.
+             -Jitter.DDP
+             -Shimmer.APQ3
+             -MDVP.Shimmer
+             -Shimmer.APQ5
+             -MDVP.Fo.Hz.
+             -MDVP.Fhi.Hz., data = numericdata, family = "binomial")
+#summary(result)
 ```
 
-```{r}
-ggplot(data = fulldata, aes(Age, Shimmer.APQ5, color = Sex))+
-  geom_point()
+**Are any of the variables correlated?**
+
+Since this data is not normal, Spearman's $\rho$ coefficient was used. In order to find good correlation, we grouped all the measures of shimmer and jitter into their respective groups. We then plotted the variables where $\rho > .7$. We found that jitter and shimmer were highly correlated, as well as HNR and shimmer.
+
+```{r, figures-side, fig.show="hold", out.width="50%"}
+averagev = numericdata %>% 
+  mutate(avgjitter = rowMeans(cbind(MDVP.Jitter...,MDVP.Jitter.Abs.,MDVP.RAP, MDVP.PPQ)),
+         avgshimmer = rowMeans(cbind(MDVP.Shimmer,MDVP.Shimmer.dB.,MDVP.APQ, Shimmer.APQ3,Shimmer.APQ5, Shimmer.DDA))) %>%
+  select(MDVP.Fo.Hz., avgjitter,avgshimmer,NHR,HNR, agegroup)
+
+
+#round(cor(averagev[,1:5], method = "spearman"),2)
+
+
+ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
+  geom_point(show.legend = F)+
+  labs(
+    x="Jitter",
+    y="Shimmer"
+  )
+# 
+# ggplot(averagev, aes(NHR,avgjitter, color = agegroup))+
+#   geom_point()
+# 
+# ggplot(averagev, aes(HNR,avgjitter, color = agegroup))+
+#   geom_point()
+# 
+# ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
+#   geom_point()
+
+ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
+  geom_point()+
+  labs(
+    y = " ",
+    color = "Age Group"
+  )+
+  scale_color_discrete(labels=c('Young', 'Old'))
+
+# ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
+#   geom_point()
+# 
+# ggplot(averagev, aes(HNR,NHR, color = agegroup))+
+#   geom_point()
 ```
+
+It is also notable that those in the older age group had higher results for every one of the measures shown.
+
 
 # Statistical Methods
 
+<<<<<<< HEAD
 ```{r, include=FALSE}
+=======
+got to test for a difference in the means probably for there being a difference in the age diagnosed.
+
+We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. For testing for a difference between men and women in the variability of diagnosis we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05.
+
+```{r, echo=FALSE, eval = F}
+M_year_of_diagnosis = c()
+F_year_of_diagnosis = c()
+j = 1
+k = 1
+
+for(i in 1:31) {
+  if(!is.na(`Years since diagnosis`[i])) {
+    if(Sex[i] == "M") { M_year_of_diagnosis[j] = Age[i] - `Years since diagnosis`[i]
+                     j = j + 1}
+    if(Sex[i] == "F") { F_year_of_diagnosis[k] = Age[i] - `Years since diagnosis`[i]
+                     k = k + 1}
+  }
+}
+
+# Returns a p-value of .00695. We can reject H0. 
+# We have significant evidence that the variability between men and women
+# differ for when they are diagnosed with Parkinsons
+SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
+```
+
+$$ST = 32$$
+$$P = 0.007$$
+
+The Siegel-Tukey test returned a test statistic of 32, and a corresponding p-value of 0.00695. Therefore, we can say that there is significant evidence that there is a difference in variance between genders.
+
+```{r}
+>>>>>>> d6a56ac9cbe23b945c1f515b3baa9c09548db37a
 difference_function <- function(x, test_to_run = mean) {
   
   function_list <- list(
@@ -398,7 +500,6 @@ permutation_tests <- data.frame(
 
 permutation_tests
 ```
-
 
 # Results
 
