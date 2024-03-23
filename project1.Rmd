@@ -3,8 +3,6 @@ title: "STAT547 Project 1"
 author: "James Spalding & Ryan Winder"
 date: "2024-02-27"
 output:
-  word_document: default
-  html_document: default
   pdf_document: default
 ---
 
@@ -391,7 +389,7 @@ Dobs
 sum(Dperm>=Dobs)/nperm
 ```
 
-The Dobs from the two-sample simulated permutation test is 0.2589, and the test gives a corresponding $\p-val$ of around 0.464. Therefore we fail to reject $\H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+The Dobs from the two-sample simulated permutation test is 0.2589, and the test gives a corresponding p-val of around 0.464. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
 
 Next we are interested in testing if there is a difference between the variability of when men and women are diagnosed. For this we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. Then, we will check the result of that test with another two-sample simulated permutation test for the variances. For the Siegel Tukey test we have the null hypothesis that the variance between men and women is the same for when they are diagnosed, and the alternative is that they are different.
 
@@ -449,7 +447,7 @@ Dobs
 sum(Dperm >= Dobs)/nperm
 ```
 
-The two-sample simulated permutation test gives a Dobs of 215.469, and a corresponding $\p-val$ of around 0.002. We can then reject $\H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
+The two-sample simulated permutation test gives a Dobs of 215.469, and a corresponding p-val of around 0.002. We can then reject $H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
 
 Lastly, we are interested in testing which voice measurement variables are significant in differentiating patients that are diagnosed with PD and those that are not. For this, we will use a two-sample simulated permutation test on all of the variables. The null hypothesis for all of the tests is that either the mean, variance, or median is equal between patients with PD and those without, and the alternative is that they differ. For each test we will use an $\alpha$ equal to .05.
 
