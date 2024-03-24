@@ -15,6 +15,9 @@ knitr::opts_chunk$set(echo = F, warning = F, message = F)
 library(tidyverse)
 library(readxl)
 library(DescTools)
+library(gt)
+library(gtExtras)
+library(gridExtra)
 ```
 
 ```{r}
@@ -103,10 +106,6 @@ In order to best join the tables and run appropriate statistics on the data, we 
 
 
 ```{r, fig.cap="hi"}
-#Using a few packages to create pretty tables
-library(gt)
-library(gtExtras)
-
 Term       = c("Sex",
                "Status",
                "Age",
@@ -246,7 +245,7 @@ p4 = ggplot(averagev, aes(x = avgshimmer)) +
         axis.ticks.y=element_blank())+
   labs(x="Shimmer", y="")
 
-library(gridExtra)
+
 grid.arrange(p1, p2, p3, p4, nrow = 2)
 ```
 
