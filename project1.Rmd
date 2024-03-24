@@ -18,6 +18,11 @@ library(DescTools)
 ```
 
 ```{r}
+
+#########################################
+########## Start James section ##########
+#########################################
+
 ##### Data cleaning #####
 #data
 patients = read_excel("patients.xlsx")[,1:5]
@@ -48,9 +53,23 @@ parknames = gsub("_.", "", parknames)
 parkdata$name = parknames
 
 
-##### Joining Tables #####
+##### Full Dataset #####
 fulldata = right_join(patients, parkdata, by = "name")
 fulldata = fulldata[!is.na(fulldata$Sex), ] #removing cases without a match in patients df
+fulldata = fulldata %>% #Create category for age group
+  mutate(agegroup = ifelse(Age <= 65,0,1)) 
+
+##### Only Numeric Values #####
+numericdata = fulldata %>%
+  select(-c(name, Age, `Stage (H&Y)`, `Years since diagnosis`))
+numericdata$Sex = factor(numericdata$Sex)
+numericdata$agegroup = factor(numericdata$agegroup)
+
+##### Averages of all Shimmer and Jitter Variables #####
+averagev = numericdata %>% 
+  mutate(avgjitter = rowMeans(cbind(MDVP.Jitter...,MDVP.Jitter.Abs.,MDVP.RAP, MDVP.PPQ)),
+         avgshimmer = rowMeans(cbind(MDVP.Shimmer,MDVP.Shimmer.dB.,MDVP.APQ, Shimmer.APQ3,Shimmer.APQ5, Shimmer.DDA))) %>%
+  select(MDVP.Fo.Hz., avgjitter,avgshimmer,NHR,HNR, agegroup)
 ```
 
 ```{r}
@@ -82,44 +101,181 @@ In order to best join the tables and run appropriate statistics on the data, we 
     
 # Exploring The Data
 
-The data used in this study was composed of 31 patients, 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the following variables mentioned in the above below:
 
-```{r}
+```{r, fig.cap="hi"}
 #Using a few packages to create pretty tables
 library(gt)
 library(gtExtras)
 
-Term = c("Sex","Age","Stage","Diagnosis", "Fo","Fhi", "Flo", "Jitter", "Shimmer", "NHR/HNR", "Status")
-Definition = c("Biological sex (M/F)","Age in years","Severity of Parkenson's disease (1-4)", "Years since first positive diagnosis (If applicable)", "Average vocal fundamental frequency (Hz.)", "Maximum vocal fundamental frequency (Hz.)", "Minimum vocal fundamental frequency (Hz.)","Measure of variation in fundamental frequency", "Measure of variation in amplitude", "Measure of ratio of noise to tonal components in the voice", "Presence of PD in patient (Y/N)")
+Term       = c("Sex",
+               "Status",
+               "Age",
+               "Stage",
+               "Diagnosis",
+               "Fo",
+               "Fhi",
+               "Flo",
+               "Jitter",
+               "Shimmer",
+               "NHR",
+               "HNR")
 
-records = t(as.data.frame(rbind(Term, Definition)))
-records = as.data.frame(records)
+Definition = c("Biological sex (M/F)",
+               "Presence of PD in patient (Y/N)",
+               "Age in years",
+               "Severity of Parkenson's disease (1-4)",
+               "Years since first positive diagnosis (If applicable)",
+               "Average vocal fundamental frequency (Hz.)",
+               "Maximum vocal fundamental frequency (Hz.)",
+               "Minimum vocal fundamental frequency (Hz.)",
+               "Measure of variation in fundamental frequency",
+               "Measure of variation in amplitude",
+               "Noise/Harmonic Ratio",
+               "Harmonic/Noise Ratio")
+
+Ratio      = c(paste0(round(100*length(which(fulldata$Sex=="M"))/length(fulldata$Sex),2),"% Male"),
+               paste0(round(100*length(which(fulldata$status==1))/length(fulldata$Sex),2),"% Positive"),
+               "",
+               "",
+               "",
+               "",
+               "",
+               "",
+               "",
+               "",
+               "",
+               "")
+
+Min        = c("",
+               "",
+               min(fulldata$Age),
+               min(na.omit(fulldata$`Stage (H&Y)`)),
+               min(na.omit(fulldata$`Years since diagnosis`)),
+               round(min(fulldata$MDVP.Fo.Hz.),2),
+               round(min(fulldata$MDVP.Fhi.Hz.),2),
+               round(min(fulldata$MDVP.Flo.Hz.),2),
+               "0.0000", #veryyyy close to 0.
+               round(min(averagev$avgshimmer),2),
+               round(min(fulldata$NHR),2),
+               round(min(fulldata$HNR),2))
+
+Mean       = c("",
+               "",
+               round(mean(fulldata$Age),2),
+               round(mean(na.omit(fulldata$`Stage (H&Y)`)),2),
+               round(mean(na.omit(fulldata$`Years since diagnosis`)),2),
+               round(mean(fulldata$MDVP.Fo.Hz.),2),
+               round(mean(fulldata$MDVP.Fhi.Hz.),2),
+               round(mean(fulldata$MDVP.Flo.Hz.),2),
+               round(mean(averagev$avgjitter),4),
+               round(mean(averagev$avgshimmer),2),
+               round(mean(fulldata$NHR),2),
+               round(mean(fulldata$HNR),2))
+
+Max        = c("",
+               "",
+               max(fulldata$Age),
+               max(na.omit(fulldata$`Stage (H&Y)`)),
+               max(na.omit(fulldata$`Years since diagnosis`)),
+               round(max(fulldata$MDVP.Fo.Hz.),2),
+               round(max(fulldata$MDVP.Fhi.Hz.),2),
+               round(max(fulldata$MDVP.Flo.Hz.),2),
+               round(max(averagev$avgjitter),4),
+               round(max(averagev$avgshimmer),2),
+               round(max(fulldata$NHR),2),
+               round(max(fulldata$HNR),2))
+
+SD         = c("",
+               "",
+               round(sd(fulldata$Age),2),
+               round(sd(na.omit(fulldata$`Stage (H&Y)`)),2),
+               round(sd(na.omit(fulldata$`Years since diagnosis`)),2),
+               round(sd(fulldata$MDVP.Fo.Hz.),2),
+               round(sd(fulldata$MDVP.Fhi.Hz.),2),
+               round(sd(fulldata$MDVP.Flo.Hz.),2),
+               round(sd(averagev$avgjitter),4),
+               round(sd(averagev$avgshimmer),2),
+               round(sd(fulldata$NHR),2),
+               round(sd(fulldata$HNR),2))
+
+
+records = as.data.frame(t(as.data.frame(rbind(Term, Definition,Ratio, Min, Mean, Max, SD))))
 records %>%
   gt() %>%
-  gt_theme_nytimes()
+  gt_theme_nytimes() %>%
+  tab_header(title="Table 1: Variables explained.") %>%
+  tab_spanner(label="Terms", columns = c(Term,Definition)) %>%
+  tab_spanner(label="Summary Statistics", columns = c(Ratio, Min, Mean, Max, SD))
+
 ```
 
-Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
+The data used in this study was composed of 31 patients; 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the  variables defined in *Table 1*. Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
 
-```{r, eval = F}
+**Expand on variables here...**
+
+```{r, fig.cap="Data compared to normal distribution.", out.height="80%", out.width="80%", fig.align='center'}
+p1 = ggplot(fulldata, aes(x = Age)) + 
+    geom_histogram(aes(y =..density..)) +
+    stat_function(fun = dnorm, args = list(mean = mean(fulldata$Age), sd = sd(fulldata$Age)))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())+
+  labs(x="Age", y="")
+
+p2 = ggplot(fulldata, aes(x = MDVP.Fo.Hz.)) + 
+    geom_histogram(aes(y =..density..)) +
+    stat_function(fun = dnorm, args = list(mean = mean(fulldata$MDVP.Fo.Hz.), sd = sd(fulldata$MDVP.Fo.Hz.)))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())+
+  labs(x="Fo", y="")
+
+p3 = ggplot(averagev, aes(x = avgjitter)) + 
+    geom_histogram(aes(y =..density..)) +
+    stat_function(fun = dnorm, args = list(mean = mean(averagev$avgjitter), sd = sd(averagev$avgjitter)))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())+
+  labs(x="Jitter", y="")
+
+p4 = ggplot(averagev, aes(x = avgshimmer)) + 
+    geom_histogram(aes(y =..density..)) +
+    stat_function(fun = dnorm, args = list(mean = mean(averagev$avgshimmer), sd = sd(averagev$avgshimmer)))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())+
+  labs(x="Shimmer", y="")
+
+library(gridExtra)
+grid.arrange(p1, p2, p3, p4, nrow = 2)
+```
+
+As shown in *Figure 1*, none of the 4 variables appear to be normally distributed. This is likely due to the small sample size, as well as the fact that the patients used in this test are only those who either have or are at risk of developing PD; thus not representative of the entire population.
+
+**Expand upon why the data being non-normal matters...**
+
+# Statistical Methods
+
+*All analysis conducted using R 4.2.2*
+
+```{r, eval=F}
 #check for normality
 shapiroP = c()
 for(i in names(fulldata)[3:21]){
   shapiroP = c(shapiroP, shapiro.test(fulldata[[i]])$p.value)
 }
 
+round(shapiroP,3)
 which(shapiroP>.05) #none of the variables are normally distributed.
 ```
 
-By running the Shapiro-Wilkes test for normality on each of the 19 numeric values, we have determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
+To confirm our observations in *Figure 1* and generalize to the entire dataset, we ran the Shapiro-Wilkes test for normality on each of the 19 numeric values. With an $\alpha$ level of 0.05, we confirmed our prior observations and determined that none of the variables are normally distributed, and thus we must use nonparametric approaches for all analysis conducted.
 
-**Do the scores differ by sex?**
-
-The first test ran was to determine whether sex has an effect on mean values for the tests. In order to find this information, we must conduct a series of permutation tests; one for each of the variables. 1,000 permutations were used for each.
-
-**P Values:**
+The next thing we wanted to determine was whether our categorical variables, namely Sex and Age Group, had an effect on the other variables in our study. In order to find this information, we conducted a series of permutation tests; 1,000 permutations per variable. The categories we tested were Male vs Female and Young (45-65) vs Old (66-85).
 
 ```{r, eval=T}
+##### Sex #####
+set.seed(12345)
 pvalues = c()
 ospvalues = c()
 for(z in 3:22){
@@ -144,66 +300,22 @@ for(z in 3:22){
     Dperm[i]=mean(newdat1)-mean(newdat2)
   }
   
-  pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm #means not equal
-  onesidepval = sum(Dperm>=Dobs)/nperm #male means higher than female means
+  pvalue=sum(abs(Dperm)>=abs(Dobs))/nperm 
+  onesidepval = sum(Dperm>=Dobs)/nperm 
   ospvalues = c(ospvalues, onesidepval)
   pvalues = c(pvalues, pvalue)
   
 }
-round(pvalues[-c(2,3)],1)
-#round(ospvalues[-c(2,3)],1)
-```
 
-With an $\alpha$ value of .05, we can say that the mean scores for the min, max, and average vocal fundamental frequency, one of the jitter ratings, and diagnosis status significantly differ between genders. Furthermore, if we conduct the same tests but with a one-sided hypothesis, we can conclude that females have an overall higher mean vocal fundamental frequency than males, and that males have a higher mean score in the jitter test and are more frequently diagnosed than females.
+# round(pvalues[-c(2,3)],3)
+# round(ospvalues[-c(2,3)],3)
+# 
+# names(fulldata[,3:22])[which(pvalues<.05)]
+# names(fulldata[,3:22])[which(ospvalues<.05)] #m>f
 
-**Is there a difference in diagnosis between sexes?**
-
-Zooming in on the above observation that males appear to be more frequently diagnosed than females, we can perform the McNemar's test on the data to confirm or deny this observation.
-
-```{r}
-patients2 <- patients %>%
-  arrange(name)
-
-combined_data <- cbind(patients2,meanDF[,-1])
-attach(combined_data)
-
-first_test <- data_frame(
-  Healthy = c(sum(Sex == "M" & status == 0), sum(Sex == "F" & status == 0)),
-  Unhealthy = c(sum(Sex == "M" & status == 1), sum(Sex == "F" & status == 1)),
-  Sex = c("Male", "Female")
-)
-
-first_test_matrix <- matrix(c(as.numeric(first_test[1,1]),
-                              as.numeric(first_test[2,1]),
-                              as.numeric(first_test[1,2]),
-                              as.numeric(first_test[2,2])),nrow=2)
-
-
-#mcnemar.test(first_test_matrix) #p-value of .0291, so we reject H0
-                                # We can then claim that the probability of getting
-                                # parkinson's is not the same for both Men and Women
-
-first_test %>%
-  gt() %>%
-  gt_theme_nytimes()
-```
-
-$$\chi^2 = 4.76 \; \; \; P = 0.03$$
-
-As the p-value is below our $\alpha$ value of .05, we can once again conclude that there is a difference in the amount of diagnoses between sexes.
-
-**Does age make a difference?**
-
-We conducted the same permutation tests as used in the sex tests, but with patients aged 45-65 and 66-85 grouped instead of sex.
-
-P-Values:
-
-```{r, eval = T}
+##### Age #####
 pvalues = c()
 ospvalues = c()
-
-fulldata = fulldata %>%
-  mutate(agegroup = ifelse(Age <= 65,0,1)) #Create category for age group
 
 for(z in 6:22){
 
@@ -233,60 +345,50 @@ for(z in 6:22){
   pvalues = c(pvalues, pvalue)
   
 }
-round(pvalues[-c(2,3)],1)
-#round(ospvalues[-c(2,3)],1)
+
+# round(pvalues[-c(2,3)],3)
+# round(ospvalues[-c(2,3)],3) 
+# 
+# # names(fulldata[,6:22])
+# names(fulldata[,6:22])[which(pvalues<.05)]
+# names(fulldata[,6:22])[which(ospvalues<.05)] #old>young
+
+Young = c("Fhi","Jitter", "Shimmer", "NHR", "Status")
+Old = c("Flo", "HNR", "","","")
+Male = c("Jitter", "Status", "","","")
+Female = c("Fo", "Fhi", "Flo","","")
+
+#output
+as.data.frame(cbind(Male,Female,Young,Old)) %>%
+  gt() %>%
+  gt_theme_nytimes() %>%
+  tab_header(title="Table 2: significant variables when grouped by categorical variables.") %>%
+  tab_spanner(label="Sex", columns = c(Male,Female)) %>%
+  tab_spanner(label="Age", columns = c(Young, Old))
 ```
 
-With an $\alpha$ level of .05, we can conclude that there is a significant difference between means for every variable, excluding average vocal fundamental frequency. With a one sided test, we can say that the older group has higher values for every variable besides NHR rating, where the younger group has higher mean values.
+As shown in *Table 2*, at an $\alpha$ value of .05, we have significant evidence that the mean values of the Jitter, Status, and the 3 Vocal Frequency variables differ between sexes. Furthermore, if we conduct the same tests with alternative hypothesis hypothesis of males having a higher mean, we can conclude that males have overall higher values of Jitter and Status, while females have higher overall values in the Vocal Frequency measurements.
 
-```{r}
-#logistic regression?
-numericdata = fulldata %>%
-  select(-c(name, Age, `Stage (H&Y)`, `Years since diagnosis`))
-numericdata$Sex = factor(numericdata$Sex)
-numericdata$agegroup = factor(numericdata$agegroup)
+For age, we can conclude that there is a significant difference between means for every variable, excluding average vocal frequency. With a one sided test, we can say that the younger group has higher values for every variable besides HNR rating and low vocal frequency in which the older group has higher mean values.
 
-
-result = glm(status~.
-             -MDVP.PPQ
-             -HNR
-             -MDVP.Flo.Hz.
-             -NHR
-             -agegroup
-             -MDVP.Jitter.Abs.
-             -MDVP.Shimmer.dB.
-             -Jitter.DDP
-             -Shimmer.APQ3
-             -MDVP.Shimmer
-             -Shimmer.APQ5
-             -MDVP.Fo.Hz.
-             -MDVP.Fhi.Hz., data = numericdata, family = "binomial")
-#summary(result)
-```
-
-**Are any of the variables correlated?**
+**Ended 3/23**
 
 Since this data is not normal, Spearman's $\rho$ coefficient was used. In order to find good correlation, we grouped all the measures of shimmer and jitter into their respective groups. We then plotted the variables where $\rho > .7$. We found that jitter and shimmer were highly correlated, as well as HNR and shimmer.
 
-```{r, figures-side, fig.show="hold", out.width="50%"}
-averagev = numericdata %>% 
-  mutate(avgjitter = rowMeans(cbind(MDVP.Jitter...,MDVP.Jitter.Abs.,MDVP.RAP, MDVP.PPQ)),
-         avgshimmer = rowMeans(cbind(MDVP.Shimmer,MDVP.Shimmer.dB.,MDVP.APQ, Shimmer.APQ3,Shimmer.APQ5, Shimmer.DDA))) %>%
-  select(MDVP.Fo.Hz., avgjitter,avgshimmer,NHR,HNR, agegroup)
 
-
+```{r, figures-side, fig.show="hold", out.width="50%", fig.cap="Noise and Harmonics compared with Shimmer"}
 #round(cor(averagev[,1:5], method = "spearman"),2)
 
 
-ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
-  geom_point(show.legend = F)+
-  labs(
-    x="Jitter",
-    y="Shimmer"
-  )
-# 
+# ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
+#   geom_point(show.legend = F)+
+#   labs(
+#     x="Jitter",
+#     y="Shimmer")+
+#   theme_minimal()
+
 # ggplot(averagev, aes(NHR,avgjitter, color = agegroup))+
-#   geom_point()
+#    geom_point()
 # 
 # ggplot(averagev, aes(HNR,avgjitter, color = agegroup))+
 #   geom_point()
@@ -294,16 +396,22 @@ ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
 # ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
 #   geom_point()
 
+ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
+  geom_point()+
+  labs(y = "Average Shimmer")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
 ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
   geom_point()+
-  labs(
-    y = " ",
-    color = "Age Group"
-  )+
-  scale_color_discrete(labels=c('Young', 'Old'))
+  labs(y = " ",
+       color = "Age Group")+
+  scale_color_discrete(labels=c('Young', 'Old'))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
 
-# ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
-#   geom_point()
+
 # 
 # ggplot(averagev, aes(HNR,NHR, color = agegroup))+
 #   geom_point()
@@ -311,7 +419,35 @@ ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
 
 It is also notable that those in the older age group had higher results for every one of the measures shown.
 
-# Statistical Methods
+
+```{r, include=F}
+
+########################################
+########## Start Ryan section ##########
+########################################
+
+patients2 <- patients %>%
+  arrange(name)
+
+combined_data <- cbind(patients2,meanDF[,-1])
+attach(combined_data)
+
+first_test <- data_frame(
+  Healthy = c(sum(Sex == "M" & status == 0), sum(Sex == "F" & status == 0)),
+  Unhealthy = c(sum(Sex == "M" & status == 1), sum(Sex == "F" & status == 1)),
+  Sex = c("Male", "Female")
+)
+
+first_test_matrix <- matrix(c(as.numeric(first_test[1,1]),
+                              as.numeric(first_test[2,1]),
+                              as.numeric(first_test[1,2]),
+                              as.numeric(first_test[2,2])),nrow=2)
+
+
+#mcnemar.test(first_test_matrix) #p-value of .0291, so we reject H0
+                                # We can then claim that the probability of getting
+                                # parkinson's is not the same for both Men and Women
+```
 
 ```{r, include=FALSE}
 difference_function <- function(x, test_to_run = mean) {
@@ -350,6 +486,7 @@ We discovered earlier how the number of men and women that are diagnosed with PD
 First, we will run a right-tailed two-sample simulated permutation test to see if the mean age at which women are diagnosed with PD is statistically greater than men. The null hypothesis is given that the mean age diagnosed with PD is the same for both men and women, and the alternative is that the mean age for women is greater. For this we will use an $\alpha$ of .05.
     
 ```{r, include=FALSE}
+attach(fulldata)
 M_year_of_diagnosis = c()
 F_year_of_diagnosis = c()
 j = 1
@@ -451,7 +588,9 @@ The two-sample simulated permutation test gives a Dobs of 215.469, and a corresp
 
 Lastly, we are interested in testing which voice measurement variables are significant in differentiating patients that are diagnosed with PD and those that are not. For this, we will use a two-sample simulated permutation test on all of the variables. The null hypothesis for all of the tests is that either the mean, variance, or median is equal between patients with PD and those without, and the alternative is that they differ. For each test we will use an $\alpha$ equal to .05.
 
-```{r, echo=FALSE}
+```{r, echo=FALSE, eval=F}
+#I somehow messed up this chunk while doing my work. The combined_data object is no longer found.
+
 explanatory_variables <- data.frame(
   variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
                 "MDVP.RAP", "MDVP.PPQ", "Jitter.DDP", "MDVP.Shimmer", "MDVP.Shimmer.dB.",
