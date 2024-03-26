@@ -366,7 +366,7 @@ as.data.frame(cbind(Male,Female,Young,Old)) %>%
   tab_spanner(label="Age", columns = c(Young, Old))
 ```
 
-As shown in *Table 2*, at an $\alpha$ value of .05, we have significant evidence that the mean values of the Jitter, Status, and the 3 Vocal Frequency variables differ between sexes. Furthermore, if we conduct the same tests with alternative hypothesis hypothesis of males having a higher mean, we can conclude that males have overall higher values of Jitter and Status, while females have higher overall values in the Vocal Frequency measurements.
+As shown in *Table 2*, at an $\alpha$ value of .05, we have significant evidence that the mean values of the Jitter, Status, and the 3 Vocal Frequency variables differ between sexes. Furthermore, if we conduct the same tests with alternative hypothesis of males having a higher mean, we can conclude that males have overall higher values of Jitter and Status, while females have higher overall values in the Vocal Frequency measurements.
 
 For age, we can conclude that there is a significant difference between means for every variable, excluding average vocal frequency. With a one sided test, we can say that the younger group has higher values for every variable besides HNR rating and low vocal frequency in which the older group has higher mean values.
 
@@ -456,6 +456,7 @@ difference_function <- function(x, test_to_run = mean) {
     Unhealthy = c(x[status == 1])
   )
   
+  
   dat1 <- function_list$Healthy
   dat2 <- function_list$Unhealthy
   
@@ -518,14 +519,17 @@ for(i in 1:nperm){
   newdat2=alldat[-index]
   Dperm[i]=mean(newdat1)-mean(newdat2)
 }
-```
 
-```{r, include = FALSE}
 Dobs
 sum(Dperm>=Dobs)/nperm
 ```
 
-The Dobs from the two-sample simulated permutation test is 0.2589, and the test gives a corresponding p-val of around 0.464. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+```{r, echo=FALSE, fig.cap="Historgram of Mean Age PD Diagnosis Sex Comparison Permutation Test", fig.align='center'}
+hist(Dperm, main = "") %>%
+  abline(v=Dobs, col="blue", lwd=2)
+```
+
+The Dobs from the two-sample simulated permutation test is 3.6 which you can see displayed above in *Figure 3*, and the test gives a corresponding p-val of around 0.084. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
 
 Next we are interested in testing if there is a difference between the variability of when men and women are diagnosed. For this we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. Then, we will check the result of that test with another two-sample simulated permutation test for the variances. For the Siegel Tukey test we have the null hypothesis that the variance between men and women is the same for when they are diagnosed, and the alternative is that they are different.
 
@@ -576,19 +580,23 @@ for(i in 1:nperm){
   newdat2=alldat[-index]
   Dperm[i]=var(newdat1)-var(newdat2)
 }
-```
 
-```{r, include=FALSE}
 Dobs
 sum(Dperm >= Dobs)/nperm
 ```
 
-The two-sample simulated permutation test gives a Dobs of 215.469, and a corresponding p-val of around 0.002. We can then reject $H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
+```{r, echo=FALSE, fig.cap="Variange of Age Diagnosed with PD Between Sexes Permutation Test", fig.align='center'}
+hist(Dperm, main = "") %>%
+  abline(v=Dobs, col="blue", lwd=2)
+```
+
+The two-sample simulated permutation test gives a Dobs of 85.54 which you can see above as the blue line in *Figure 4*, and a corresponding p-val of around 0.003. We can then reject $H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
 
 Lastly, we are interested in testing which voice measurement variables are significant in differentiating patients that are diagnosed with PD and those that are not. For this, we will use a two-sample simulated permutation test on all of the variables. The null hypothesis for all of the tests is that either the mean, variance, or median is equal between patients with PD and those without, and the alternative is that they differ. For each test we will use an $\alpha$ equal to .05.
 
-```{r, echo=FALSE, eval=F}
-#I somehow messed up this chunk while doing my work. The combined_data object is no longer found.
+```{r, include=FALSE}
+combined_data <- cbind(patients2,meanDF[,-1])
+attach(combined_data)
 
 explanatory_variables <- data.frame(
   variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
@@ -612,20 +620,23 @@ permutation_tests <- data.frame(
   Pval_var = p_values_var,
   Pval_median = p_values_median
 )
-
-permutation_tests
 ```
 
-As you can see, there is a statistically significant difference in the means between people with PD and those without for Flo, the absolute value of Jitter, all types of Shimmer, MDVP.APQ, and lastly HNR. Then, there is statistically significant differences between the variances of people with PD to those without PD only for the variable Flo. Lastly, there is statistically significant differences in the median for people with PD to those without only for Fhi and Flo. 
+```{r, echo=FALSE}
+permutation_tests %>%
+  gt() %>%
+  gt_theme_nytimes() %>%
+  tab_header(title="Table 3: Probabilities of Two-Sample Permutation Tests")
+```
+
+
+As you can see in *Table 3*, there is a statistically significant difference in the means between people with PD and those without for Flo, the absolute value of Jitter, all types of Shimmer, MDVP.APQ, and lastly HNR. Then, there is statistically significant differences between the variances of people with PD to those without only for the variable Flo. Lastly, there is statistically significant differences in the median for people with PD to those without only for Fhi and Flo. 
 
 # Results and Conclusions
 
-We were mainly interested in testing if there is differences between the age that women and men were likely to be diagnosed with PD. Our testing showed that we did not have enough evidence to suggest anything on that front. We were then interested if there was any difference in the variance that either gender was diagnosed. Using a Siegel Tukey test with an $\alpha$ of .05 resulted where we were able to reject the null, and state that we had significant evidence to suggest that the variances were different between genders.
+We were largely interested in testing if there is differences between the age that women and men were likely to be diagnosed with PD. Our testing showed that we did not have enough evidence to suggest anything on that front. We were then interested if there was any difference in the variance that either gender was diagnosed. Using a Siegel Tukey test with an $\alpha$ of .05 resulted where we were able to find that the variance in what age women get diagnosed is greater than men, and this was then confirmed with another two-sample one-sided permutation test.
 
-We then used another two-sample simulated permutation test with an $\alpha$ of .05 to see if the variance of when women are diagnosed with PD is greater than it is for men. The test resulted in showing that there was a statistically significant greater variability of when women are diagnosed than it is for men.
-
-In our last testing we found that there was the most differences in the variables between patients with PD to those without for the means. There was then only one variable that had a statistically different variance, which was Flo. Finally, only Flo and Fhi were found to have statistically different medians. From this, we can conclude that Flo is the best indicator due to it being the only variable that has a statistically different mean, variance, and median between patients with PD to those without. The next best indicator for determining whether a patient is likely to have PD or not would be Fhi.
-
+Our last interests were testing what variables between patients with PD to those without were statistically different. Flo was found to be the only variable that was statistically different for mean, variance, and median. This indicates that Flo is the best variable in determining whether a patient is diagnosed with PD or not. Further evidence to show that Flo is the best indicator of PD, is that there was not one other variable to test statistically different for more than one test between mean, variance, and median. In the end, we were able to find some interesting background knowledge on the diagnosis of patients with PD and concluded with finding the variable Flo to the best in diagnosing patients with PD.
 
 
 
