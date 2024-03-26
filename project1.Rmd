@@ -18,6 +18,7 @@ library(DescTools)
 library(gt)
 library(gtExtras)
 library(gridExtra)
+library(ggpubr)
 ```
 
 ```{r}
@@ -417,6 +418,67 @@ ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
 ```
 
 It is also notable that those in the older age group had higher results for every one of the measures shown.
+
+```{r,message=F,fig.cap="Logistic regression graphs."}
+#logistic regression
+average2 = averagev
+average2$status = fulldata$status
+average2$status = factor(average2$status)
+average2$agegroup = factor(average2$agegroup)
+
+set.seed(12345)
+trainindex=sample(1:189,100)
+training = average2[trainindex,]
+validation = average2[-trainindex,] 
+
+model = glm(status~0+.-agegroup-HNR,family = binomial(),data=training) 
+#intercept, agegroup, and HNR not significant
+#summary(model)
+training$prediction = predict(model,type="response")
+
+
+#Output
+reg1= ggplot(training, aes(x=MDVP.Fo.Hz., y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  theme_minimal()
+
+reg2= ggplot(training, aes(x=avgjitter, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+theme_minimal()
+
+reg3= ggplot(training, aes(x=avgshimmer, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  theme_minimal()
+
+reg4= ggplot(training, aes(x=NHR, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  theme_minimal()
+
+ggarrange(reg1,reg2,reg3,reg4, ncol=2, nrow=2, common.legend = TRUE, legend="top")
+```
 
 
 ```{r, include=F}
