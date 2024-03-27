@@ -18,14 +18,10 @@ library(DescTools)
 library(gt)
 library(gtExtras)
 library(gridExtra)
+library(ggpubr)
 ```
 
 ```{r}
-
-#########################################
-########## Start James section ##########
-#########################################
-
 ##### Data cleaning #####
 #data
 patients = read_excel("patients.xlsx")[,1:5]
@@ -210,8 +206,6 @@ records %>%
 
 The data used in this study was composed of 31 patients; 23 of which have tested positive for PD and the remaining 8 at risk. Each of these patients have taken various tests to determine their scores in the  variables defined in *Table 1*. Throughout this study, we will use these terms to search for connections between the various measures of voice and the presence of PD in patients.
 
-**Expand on variables here...**
-
 ```{r, fig.cap="Data compared to normal distribution.", out.height="80%", out.width="80%", fig.align='center'}
 p1 = ggplot(fulldata, aes(x = Age)) + 
     geom_histogram(aes(y =..density..)) +
@@ -249,9 +243,7 @@ p4 = ggplot(averagev, aes(x = avgshimmer)) +
 grid.arrange(p1, p2, p3, p4, nrow = 2)
 ```
 
-As shown in *Figure 1*, none of the 4 variables appear to be normally distributed. This is likely due to the small sample size, as well as the fact that the patients used in this test are only those who either have or are at risk of developing PD; thus not representative of the entire population.
-
-**Expand upon why the data being non-normal matters...**
+As shown in *Figure 1*, none of the 4 variables appear to be normally distributed. This is likely due to the small sample size, as well as the fact that the patients used in this test are only those who either have or are at risk of developing PD; thus not representative of the entire population. For this reason, many statistical methods cannot be used, due to normality being an assumption of the tests.
 
 # Statistical Methods
 
@@ -352,8 +344,8 @@ for(z in 6:22){
 # names(fulldata[,6:22])[which(pvalues<.05)]
 # names(fulldata[,6:22])[which(ospvalues<.05)] #old>young
 
-Young = c("Fhi","Jitter", "Shimmer", "NHR", "Status")
-Old = c("Flo", "HNR", "","","")
+Young = c("Flo", "HNR", "","","")
+Old = c("Fhi","Jitter", "Shimmer", "NHR", "Status")
 Male = c("Jitter", "Status", "","","")
 Female = c("Fo", "Fhi", "Flo","","")
 
@@ -368,63 +360,11 @@ as.data.frame(cbind(Male,Female,Young,Old)) %>%
 
 As shown in *Table 2*, at an $\alpha$ value of .05, we have significant evidence that the mean values of the Jitter, Status, and the 3 Vocal Frequency variables differ between sexes. Furthermore, if we conduct the same tests with alternative hypothesis of males having a higher mean, we can conclude that males have overall higher values of Jitter and Status, while females have higher overall values in the Vocal Frequency measurements.
 
-For age, we can conclude that there is a significant difference between means for every variable, excluding average vocal frequency. With a one sided test, we can say that the younger group has higher values for every variable besides HNR rating and low vocal frequency in which the older group has higher mean values.
+For age, we can conclude that there is a significant difference between means for every variable, excluding average vocal frequency. With a one sided test, we can say that the older group has higher values for every variable besides HNR rating and low vocal frequency in which the younger group has higher mean values.
 
-**Ended 3/23**
-
-Since this data is not normal, Spearman's $\rho$ coefficient was used. In order to find good correlation, we grouped all the measures of shimmer and jitter into their respective groups. We then plotted the variables where $\rho > .7$. We found that jitter and shimmer were highly correlated, as well as HNR and shimmer.
-
-
-```{r, figures-side, fig.show="hold", out.width="50%", fig.cap="Noise and Harmonics compared with Shimmer"}
-#round(cor(averagev[,1:5], method = "spearman"),2)
-
-
-# ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
-#   geom_point(show.legend = F)+
-#   labs(
-#     x="Jitter",
-#     y="Shimmer")+
-#   theme_minimal()
-
-# ggplot(averagev, aes(NHR,avgjitter, color = agegroup))+
-#    geom_point()
-# 
-# ggplot(averagev, aes(HNR,avgjitter, color = agegroup))+
-#   geom_point()
-# 
-# ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
-#   geom_point()
-
-ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
-  geom_point()+
-  labs(y = "Average Shimmer")+
-  theme_minimal()+
-  theme(legend.position = "none")
-
-ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
-  geom_point()+
-  labs(y = " ",
-       color = "Age Group")+
-  scale_color_discrete(labels=c('Young', 'Old'))+
-  theme_minimal()+
-  theme(axis.text.y=element_blank(),
-        axis.ticks.y=element_blank())
-
-
-# 
-# ggplot(averagev, aes(HNR,NHR, color = agegroup))+
-#   geom_point()
-```
-
-It is also notable that those in the older age group had higher results for every one of the measures shown.
-
+Lastly, we are interested in testing which voice measurement variables are significant in differentiating patients that are diagnosed with PD and those that are not. For this, we will use a two-sample simulated permutation test on all of the variables. The null hypothesis for all of the tests is that either the mean, variance, or median is equal between patients with PD and those without, and the alternative is that they differ. For each test we will use an $\alpha$ equal to .05.
 
 ```{r, include=F}
-
-########################################
-########## Start Ryan section ##########
-########################################
-
 patients2 <- patients %>%
   arrange(name)
 
@@ -481,6 +421,172 @@ difference_function <- function(x, test_to_run = mean) {
 }
 ```
 
+```{r, include=FALSE}
+combined_data <- cbind(patients2,meanDF[,-1])
+attach(combined_data)
+
+explanatory_variables <- data.frame(
+  variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
+                "MDVP.RAP", "MDVP.PPQ", "Jitter.DDP", "MDVP.Shimmer", "MDVP.Shimmer.dB.",
+                "Shimmer.APQ3", "Shimmer.APQ5", "MDVP.APQ", "Shimmer.DDA",
+                "NHR", "HNR"))
+p_values_mean <- c()
+p_values_var <- c()
+p_values_median <- c()
+
+for(i in 6:20) {
+  p_values_mean[i-5] <- difference_function(combined_data[,i])
+  p_values_var[i-5] <- difference_function(combined_data[,i], var)
+  p_values_median[i-5] <- difference_function(combined_data[,i], median)
+}
+
+
+permutation_tests <- data.frame(
+  Variable = explanatory_variables$variables,
+  Pval_mean = p_values_mean,
+  Pval_var = p_values_var,
+  Pval_median = p_values_median
+)
+```
+
+```{r, echo=FALSE}
+permutation_tests %>%
+  gt() %>%
+  gt_theme_nytimes() %>%
+  tab_header(title="Table 3: Probabilities of Two-Sample Permutation Tests")
+```
+
+
+As you can see in *Table 3*, there is a statistically significant difference in the means between people with PD and those without for Flo, the absolute value of Jitter, all types of Shimmer, MDVP.APQ, and lastly HNR. Then, there is statistically significant differences between the variances of people with PD to those without only for the variable Flo. Lastly, there is statistically significant differences in the median for people with PD to those without only for Fhi and Flo. 
+
+\newpage
+
+Next, we looked for correlation between the numeric variables. Since this data is not normal, Spearman's $\rho$ coefficient was used. In order to find good correlation, we took the mean of all measures of shimmer and jitter and put them into their respective groups.
+
+
+```{r, figures-side, fig.show="hold", out.width="50%", fig.cap="Noise and Harmonics compared with Shimmer"}
+#round(cor(averagev[,1:5], method = "spearman"),2)
+
+
+# ggplot(averagev, aes(avgjitter,avgshimmer, color = agegroup))+
+#   geom_point(show.legend = F)+
+#   labs(
+#     x="Jitter",
+#     y="Shimmer")+
+#   theme_minimal()
+
+# ggplot(averagev, aes(NHR,avgjitter, color = agegroup))+
+#    geom_point()
+# 
+# ggplot(averagev, aes(HNR,avgjitter, color = agegroup))+
+#   geom_point()
+# 
+# ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
+#   geom_point()
+
+ggplot(averagev, aes(NHR,avgshimmer, color = agegroup))+
+  geom_point()+
+  labs(y = "Average Shimmer")+
+  theme_minimal()+
+  theme(legend.position = "none")
+
+ggplot(averagev, aes(HNR,avgshimmer, color = agegroup))+
+  geom_point()+
+  labs(y = " ",
+       color = "Age Group")+
+  scale_color_discrete(labels=c('Young', 'Old'))+
+  theme_minimal()+
+  theme(axis.text.y=element_blank(),
+        axis.ticks.y=element_blank())
+
+
+# 
+# ggplot(averagev, aes(HNR,NHR, color = agegroup))+
+#   geom_point()
+```
+
+We found that jitter, shimmer, NHR and HNR were all very correlated with each other, with $\rho$ values ranging from 0.75 to 0.87. To illustrate this, *Figure 2* shows off the correlation between both NHR and HNR with shimmer. It is also notable that those in the older age group tend to have higher shimmer and NHR values, but lower HNR values as compared to the younger group, which visualizes a few of our observations in *Table 2*.
+
+\newpage
+
+Next, we decided to create a logistic regression model to predict the probability of a patient being positive for PD given their testing results. Since normality is not an assumption of regression, this is conducted the same way as normal. The resulting model uses the patient's average vocal frequency, average jitter, average shimmer, and noise/harmonic scores and is shown below:
+
+$$P(\text{Positive}) = \frac{e^{-0.016\text{Fo}+1198\text{Jitter}+45.4\text{Shimmer}-69.37\text{NHR}}}{1+ e^{-0.016\text{Fo}+1198\text{Jitter}+45.4\text{Shimmer}-69.37\text{NHR}}}$$
+
+This equation could be very useful to doctors during the screening process for PD, as it could possibly limit the amount of tests required for a diagnosis.
+
+
+
+```{r, fig.show="hold", fig.cap="Logistic regression graphs.", include =T}
+
+#logistic regression
+average2 = averagev
+average2$status = fulldata$status
+average2$status = factor(average2$status)
+average2$agegroup = factor(average2$agegroup)
+
+set.seed(12345)
+trainindex=sample(1:189,100)
+training = average2[trainindex,]
+validation = average2[-trainindex,] 
+
+model = glm(status~0+.-agegroup-HNR,family = binomial(),data=training) 
+#intercept, agegroup, and HNR not significant
+#summary(model)
+training$prediction = predict(model,type="response")
+
+
+#Output
+reg1= ggplot(training, aes(x=MDVP.Fo.Hz., y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  theme_minimal()
+
+reg2= ggplot(training, aes(x=avgjitter, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+theme_minimal()
+
+reg3= ggplot(training, aes(x=avgshimmer, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  theme_minimal()
+
+reg4= ggplot(training, aes(x=NHR, y=prediction)) +
+  geom_point(size = .5, aes(color=status))+
+  geom_smooth(method = "glm", 
+              method.args = list(family = "binomial"), 
+              se = FALSE,
+              color = "black",
+              linetype="dashed")+
+  labs(y="")+
+  labs(y="")+
+  theme_minimal()
+
+ggarrange(reg1,reg2,reg3,reg4, ncol=2, nrow=2, common.legend = TRUE, legend="top")
+
+#
+```
+
+The plots in *Figure 3* show that the model is fairly accurate, as the blue dots tend to cluster more towards the top of the graph, as it shows the cases that the model predict would have a higher chance to be positive are actually positive.
+
+\newpage
+
+
 We discovered earlier how the number of men and women that are diagnosed with PD is statistically different. We are now interested if there is a statistical difference between the age at which men and women are diagnosed with PD, along with if there is a difference in the variability between when men and women are diagnosed. 
 
 First, we will run a right-tailed two-sample simulated permutation test to see if the mean age at which women are diagnosed with PD is statistically greater than men. The null hypothesis is given that the mean age diagnosed with PD is the same for both men and women, and the alternative is that the mean age for women is greater. For this we will use an $\alpha$ of .05.
@@ -529,7 +635,9 @@ hist(Dperm, main = "") %>%
   abline(v=Dobs, col="blue", lwd=2)
 ```
 
-The Dobs from the two-sample simulated permutation test is 3.6 which you can see displayed above in *Figure 3*, and the test gives a corresponding p-val of around 0.084. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+The Dobs from the two-sample simulated permutation test is 3.6 which you can see displayed above in *Figure 4*, and the test gives a corresponding p-val of around 0.084. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+
+\newpage
 
 Next we are interested in testing if there is a difference between the variability of when men and women are diagnosed. For this we will use a two-sided Siegel Tukey Test with an $\alpha$ level of .05. Then, we will check the result of that test with another two-sample simulated permutation test for the variances. For the Siegel Tukey test we have the null hypothesis that the variance between men and women is the same for when they are diagnosed, and the alternative is that they are different.
 
@@ -582,52 +690,15 @@ Dobs
 sum(Dperm >= Dobs)/nperm
 ```
 
-```{r, echo=FALSE, fig.cap="Variange of Age Diagnosed with PD Between Sexes Permutation Test", fig.align='center'}
+```{r, echo=FALSE, fig.cap="Variance of Age Diagnosed with PD Between Sexes Permutation Test", fig.align='center'}
 hist(Dperm, main = "") %>%
   abline(v=Dobs, col="blue", lwd=2)
 ```
 
-The two-sample simulated permutation test gives a Dobs of 85.54 which you can see above as the blue line in *Figure 4*, and a corresponding p-val of around 0.003. We can then reject $H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
+The two-sample simulated permutation test gives a Dobs of 85.54 which you can see above as the blue line in *Figure 5*, and a corresponding p-val of around 0.003. We can then reject $H_0$ at the .05 level. We can then conclude with this test that we have significant evidence to suggest that the variance for when women are diagnosed with PD is greater than it is for men.
 
-Lastly, we are interested in testing which voice measurement variables are significant in differentiating patients that are diagnosed with PD and those that are not. For this, we will use a two-sample simulated permutation test on all of the variables. The null hypothesis for all of the tests is that either the mean, variance, or median is equal between patients with PD and those without, and the alternative is that they differ. For each test we will use an $\alpha$ equal to .05.
+\newpage
 
-```{r, include=FALSE}
-combined_data <- cbind(patients2,meanDF[,-1])
-attach(combined_data)
-
-explanatory_variables <- data.frame(
-  variables = c("MDVP.Fhi.Hz.", "MDVP.Flo.Hz.", "MDVP.Jitter...", "MDVP.Jitter.Abs.",
-                "MDVP.RAP", "MDVP.PPQ", "Jitter.DDP", "MDVP.Shimmer", "MDVP.Shimmer.dB.",
-                "Shimmer.APQ3", "Shimmer.APQ5", "MDVP.APQ", "Shimmer.DDA",
-                "NHR", "HNR"))
-p_values_mean <- c()
-p_values_var <- c()
-p_values_median <- c()
-
-for(i in 6:20) {
-  p_values_mean[i-5] <- difference_function(combined_data[,i])
-  p_values_var[i-5] <- difference_function(combined_data[,i], var)
-  p_values_median[i-5] <- difference_function(combined_data[,i], median)
-}
-
-
-permutation_tests <- data.frame(
-  Variable = explanatory_variables$variables,
-  Pval_mean = p_values_mean,
-  Pval_var = p_values_var,
-  Pval_median = p_values_median
-)
-```
-
-```{r, echo=FALSE}
-permutation_tests %>%
-  gt() %>%
-  gt_theme_nytimes() %>%
-  tab_header(title="Table 3: Probabilities of Two-Sample Permutation Tests")
-```
-
-
-As you can see in *Table 3*, there is a statistically significant difference in the means between people with PD and those without for Flo, the absolute value of Jitter, all types of Shimmer, MDVP.APQ, and lastly HNR. Then, there is statistically significant differences between the variances of people with PD to those without only for the variable Flo. Lastly, there is statistically significant differences in the median for people with PD to those without only for Fhi and Flo. 
 
 # Results and Conclusions
 
