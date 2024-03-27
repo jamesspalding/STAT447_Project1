@@ -554,12 +554,9 @@ for(i in 1:31) {
 SiegelTukeyTest(M_year_of_diagnosis,F_year_of_diagnosis,alternative="two.sided")
 ```
 
-$$ST = 32$$
-$$P = 0.007$$
-
 The Siegel-Tukey test returned a test statistic of 32, and a corresponding p-value of 0.00695. We can then reject the null hypothesis. Therefore, we can say that there is significant evidence that there is a difference in variance between genders.
 
-We will then run another test for this using the simulated permutation test to see if the variability for the age women are diagnosed with PD is greater than that for men. We will be using the two-sample simlulated permutation test for this because it has a greater power than the Siegel Tukey test. The null hypothesis for this test is that the variances for when men and women are diagnosed with PD is the equal, and the alternative is that the variance for women is greater. For this test we will use an $\alpha$ of .05.
+We will then run another test for this using the simulated permutation test to see if the variability for the age women are diagnosed with PD is greater than that for men. We will be using the two-sample simulated permutation test for this because it has a greater power than the Siegel Tukey test. The null hypothesis for this test is that the variances for when men and women are diagnosed with PD is the equal, and the alternative is that the variance for women is greater. For this test we will use an $\alpha$ of .05.
 
 ```{r, include=FALSE}
 dat1 = F_year_of_diagnosis
@@ -636,7 +633,7 @@ As you can see in *Table 3*, there is a statistically significant difference in 
 
 We were largely interested in testing if there is differences between the age that women and men were likely to be diagnosed with PD. Our testing showed that we did not have enough evidence to suggest anything on that front. We were then interested if there was any difference in the variance that either gender was diagnosed. Using a Siegel Tukey test with an $\alpha$ of .05 resulted where we were able to find that the variance in what age women get diagnosed is greater than men, and this was then confirmed with another two-sample one-sided permutation test.
 
-Our last interests were testing what variables between patients with PD to those without were statistically different. Flo was found to be the only variable that was statistically different for mean, variance, and median. This indicates that Flo is the best variable in determining whether a patient is diagnosed with PD or not. Further evidence to show that Flo is the best indicator of PD, is that there was not one other variable to test statistically different for more than one test between mean, variance, and median. In the end, we were able to find some interesting background knowledge on the diagnosis of patients with PD and concluded with finding the variable Flo to the best in diagnosing patients with PD.
+Lastly, our interest was in testing what variables between patients with PD to those without were statistically different. Flo was found to be the only variable that was statistically different for mean, variance, and median. This indicates that Flo is the best variable in determining whether a patient is diagnosed with PD or not. Further evidence to show that Flo is the best indicator of PD, is that there was not one other variable to test statistically different for more than one test between mean, variance, and median. In the end, we were able to find some interesting background knowledge on the diagnosis of patients with PD and were able to find the variable Flo to the best in diagnosing patients with PD.
 
 
 
