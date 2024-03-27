@@ -635,7 +635,7 @@ hist(Dperm, main = "") %>%
   abline(v=Dobs, col="blue", lwd=2)
 ```
 
-The Dobs from the two-sample simulated permutation test is 3.6 which you can see displayed above in *Figure 4*, and the test gives a corresponding p-val of around 0.084. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
+The Dobs from the two-sample simulated permutation test is 3.6 which you can see displayed as the blue line above in *Figure 4*, and the test gives a corresponding p-val of around 0.084. Therefore we fail to reject $H_0$ at the .05 level. We can conclude that we do not have enough evidence to say that women are diagnosed with PD at a later age than men.
 
 \newpage
 
